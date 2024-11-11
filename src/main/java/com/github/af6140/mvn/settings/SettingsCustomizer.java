@@ -57,8 +57,12 @@ public class SettingsCustomizer extends AbstractMavenLifecycleParticipant {
         }
         return matched;
       });
-      logger.info("Adding central repo");
-      repos.add(getCentralRepo());
+
+      long count = repos.stream().filter(x -> x.getId().toLowerCase().equals("central")).count();
+      if(count<=0) {
+        logger.info("Adding central repo");
+        repos.add(getCentralRepo());
+      }
     }
   }
 
