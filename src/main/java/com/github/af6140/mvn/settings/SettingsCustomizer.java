@@ -2,14 +2,17 @@ package com.github.af6140.mvn.settings;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
+
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
+import org.apache.maven.artifact.repository.MavenArtifactRepository;
+import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Settings;
-import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
@@ -30,25 +33,41 @@ public class SettingsCustomizer extends AbstractMavenLifecycleParticipant {
   private Logger logger;
 
   @Override
-  public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
+  public void afterSessionStart(MavenSession session) throws MavenExecutionException {
     logger.info("After session started");
     Settings settings = session.getSettings();
+    if (settings == null) {
+      return;
+    }
     String checkPattern = (String) System.getenv("MVN_MIRROR_CHECK_PATTERN");
     if(checkPattern==null || checkPattern.trim().isEmpty()) {
      checkPattern =  ".*artifactory.*";
     }
-    if(settings != null) {
-      logger.info("Start checking mirrors, total={}", settings.getMirrors().size());
-      removeMirror(settings.getMirrors(), checkPattern);
-      logger.info("Finished checking mirrors, total={}", settings.getMirrors().size());
+    logger.info("Start checking mirrors, total={}", settings.getMirrors().size());
+    boolean removed = removeMirror(settings.getMirrors(), checkPattern);
+    logger.info("Finished checking mirrors, total={}", settings.getMirrors().size());
+    if(removed) {
+      // add central
+      List<ArtifactRepository> repos= session.getProjectBuildingRequest().getRemoteRepositories();
+      final String badPattern = checkPattern;
+      repos.removeIf(r -> {
+        boolean matched = false;
+        if( r.getUrl() != null && r.getLayout()!=null && r.getUrl().toLowerCase().matches(badPattern)) {
+          matched = true;
+        }
+        return matched;
+      });
+      logger.info("Adding central repo");
+      repos.add(getCentralRepo());
     }
   }
 
-  private void removeMirror(List<Mirror> mirrors, String checkPattern) {
+  private boolean removeMirror(List<Mirror> mirrors, String checkPattern) {
     if(mirrors ==null || mirrors.isEmpty()) {
-      return;
+      return false;
     }
-    mirrors.removeIf(m -> ! validateUrl(m, checkPattern));
+    boolean removed= mirrors.removeIf(m -> ! validateUrl(m, checkPattern));
+    return removed;
   }
 
   private boolean validateUrl(Mirror mirror, String checkPattern) {
@@ -71,5 +90,18 @@ public class SettingsCustomizer extends AbstractMavenLifecycleParticipant {
       return false;
     }
     return true;
+  }
+
+  ArtifactRepository getCentralRepo() {
+    MavenArtifactRepository repo = new MavenArtifactRepository();
+    repo.setUrl("https://repo.maven.apache.org/maven2/");
+    repo.setId("central");
+    repo.setLayout(new DefaultRepositoryLayout());
+    ArtifactRepositoryPolicy repoPolicy = new ArtifactRepositoryPolicy();
+    repoPolicy.setUpdatePolicy(ArtifactRepositoryPolicy.UPDATE_POLICY_DAILY);
+    repoPolicy.setEnabled(true);
+    repo.setReleaseUpdatePolicy(repoPolicy);
+    repo.setSnapshotUpdatePolicy(repoPolicy);
+    return repo;
   }
 }
