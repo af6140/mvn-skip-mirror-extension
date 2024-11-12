@@ -13,6 +13,7 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.slf4j.Logger;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
@@ -28,9 +29,12 @@ import java.util.List;
 @Singleton
 public class SettingsCustomizer extends AbstractMavenLifecycleParticipant {
 
-  @Requirement
-//  @Inject
   private Logger logger;
+
+  @Inject
+  public SettingsCustomizer(Logger logger) {
+    this.logger = logger;
+  }
 
   @Override
   public void afterSessionStart(MavenSession session) throws MavenExecutionException {
@@ -96,16 +100,21 @@ public class SettingsCustomizer extends AbstractMavenLifecycleParticipant {
     return true;
   }
 
-  ArtifactRepository getCentralRepo() {
+  /**
+   * @return Maven official central
+   */
+  protected ArtifactRepository getCentralRepo() {
     MavenArtifactRepository repo = new MavenArtifactRepository();
     repo.setUrl("https://repo.maven.apache.org/maven2/");
     repo.setId("central");
     repo.setLayout(new DefaultRepositoryLayout());
     ArtifactRepositoryPolicy repoPolicy = new ArtifactRepositoryPolicy();
-    repoPolicy.setUpdatePolicy(ArtifactRepositoryPolicy.UPDATE_POLICY_DAILY);
+    repoPolicy.setUpdatePolicy(ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER);
     repoPolicy.setEnabled(true);
     repo.setReleaseUpdatePolicy(repoPolicy);
-    repo.setSnapshotUpdatePolicy(repoPolicy);
+    ArtifactRepositoryPolicy snapshotPolicy = new ArtifactRepositoryPolicy();
+    snapshotPolicy.setEnabled(false);
+    repo.setSnapshotUpdatePolicy(snapshotPolicy);
     return repo;
   }
 }
