@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- setting for invoker -->
 <settings>
     <mirrors>
         <mirror>
@@ -24,6 +25,19 @@
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>
+                </repository>
+                <repository>
+                    <id>test-releases</id>
+                    <name>maven-mpsm-release</name>
+                    <url>https://artifactory.dummy.example.com/artifactory/test-release</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>test-snapshots</id>
+                    <name>maven-mpsm-snapshot</name>
+                    <url>https://artifactory.dummy.example.com/artifactory/test-snapshot</url>
                 </repository>
             </repositories>
             <pluginRepositories>

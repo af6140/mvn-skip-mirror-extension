@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.af6140.mvn</groupId>
-    <artifactId>mvn-skip-bad-mirror</artifactId>
+    <artifactId>skip-bad-mirror</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
@@ -21,7 +21,6 @@
             <version>3.8.8</version>
             <scope>provided</scope> <!-- always provided by the Maven Core Classloader -->
         </dependency>
-
         <!-- dependency for JSR 330 annotation -->
         <dependency>
             <groupId>javax.inject</groupId>
@@ -54,6 +53,38 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>5.9.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <configuration>
+                    <goalPrefix>${project.name}</goalPrefix>
+                </configuration>
+                <version>3.13.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-component-metadata</artifactId>
+                <version>2.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-metadata</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.eclipse.sisu</groupId>
                 <artifactId>sisu-maven-plugin</artifactId>
                 <version>0.3.5</version>
@@ -72,9 +103,13 @@
                 <configuration>
                     <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                     <showErrors>true</showErrors>
+                    <cloneAllFiles>true</cloneAllFiles>
+                    <debug>false</debug>
+                    <detail>false</detail>
                     <settingsFile>src/it/settings.xml</settingsFile>
                     <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
-                    <postBuildHookScript>verify</postBuildHookScript> <!-- no extension required -->
+                    <postBuildHookScript>verify.groovy</postBuildHookScript> <!-- no extension required -->
+                    <streamLogs>true</streamLogs>
                     <goals>
                         <goal>package -V</goal>
                     </goals>

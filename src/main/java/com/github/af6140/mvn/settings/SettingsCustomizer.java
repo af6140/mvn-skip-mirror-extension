@@ -10,12 +10,9 @@ import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.slf4j.Logger;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,20 +22,15 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 
-@Named("DeadMirror")
-@Singleton
+
+@Component(role = AbstractMavenLifecycleParticipant.class)
 public class SettingsCustomizer extends AbstractMavenLifecycleParticipant {
-
+  @Requirement
   private Logger logger;
-
-  @Inject
-  public SettingsCustomizer(Logger logger) {
-    this.logger = logger;
-  }
 
   @Override
   public void afterSessionStart(MavenSession session) throws MavenExecutionException {
-    logger.info("After session started");
+    logger.debug("After session started");
     Settings settings = session.getSettings();
     if (settings == null) {
       return;

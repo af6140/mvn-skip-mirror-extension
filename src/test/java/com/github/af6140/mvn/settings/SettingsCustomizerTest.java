@@ -9,24 +9,22 @@ import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.settings.Mirror;
 import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(MockitoExtension.class)
-class SettingsCustomizerTest {
+public class SettingsCustomizerTest {
 
   @Mock
   MavenSession session;
@@ -46,14 +44,14 @@ class SettingsCustomizerTest {
   SettingsCustomizer settingsCustomizer;
 
   @BeforeEach
-  void setUp() {
+  public void setUp() {
     mirror = new Mirror();
     mirror.setMirrorOf("central");
     mirror.setUrl("https://artifactory.dummy.example.com/maven-central");
   }
 
   @Test
-  void getCentralRepo() {
+  public void getCentralRepo() {
     ArtifactRepository repo = settingsCustomizer.getCentralRepo();
     assertNotNull(repo);
     assertEquals("central", repo.getId());
@@ -62,7 +60,7 @@ class SettingsCustomizerTest {
   }
 
   @Test
-  void afterSessionStarted() throws MavenExecutionException {
+  public void afterSessionStarted() throws MavenExecutionException {
     when(session.getSettings()).thenReturn(settings);
     when(session.getProjectBuildingRequest()).thenReturn(buildingRequest);
     List<Mirror> mirrors = new ArrayList<>();
@@ -81,6 +79,7 @@ class SettingsCustomizerTest {
     repos.add(repo2);
     when(buildingRequest.getRemoteRepositories()).thenReturn(repos);
     settingsCustomizer.afterSessionStart(session);
+    settings.getMirrors().forEach(x -> System.out.println(x.getUrl()));
     assertTrue(settings.getMirrors().isEmpty());
     assertEquals(0, repos.stream().filter(x -> x.getId().equals(repo1.getId())).count());
     assertEquals(1, repos.stream().filter(x -> x.getId().equals("central")).count());

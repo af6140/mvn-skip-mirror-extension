@@ -6,7 +6,7 @@
     <groupId>it.test</groupId>
     <artifactId>simple-pom</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>simple-pom</name>
     <url>http://maven.apache.org</url>
